@@ -1,6 +1,18 @@
 //globals for the 311 GeoJSON/Carto process
 var sqlQuery311 = "SELECT * FROM table_311_cases_graffitti_mission_2015_ WHERE latitude < 37.758387 AND longitude > -122.423573 AND latitude > 37.753992 AND longitude < -122.416425";
 var threeOneOneData = null;
+//xIcon
+var xIcon = L.icon({
+    iconUrl: 'x-symbol.png',
+    shadowUrl: 'x-shadow.png',
+
+    iconSize:     [38, 38], // size of the icon
+    shadowSize:   [0, 0], // size of the shadow
+    iconAnchor:   [19,19], // point of the icon which will correspond to marker's location
+    shadowAnchor: [1, 1],  // the same for the shadow
+    popupAnchor:  [-3, -3] // point from which the popup should open relative to the iconAnchor
+});
+
 //311 caller
 function add311(mymap){
     mymap.spin(true); //starts the load spinner
@@ -9,8 +21,9 @@ function add311(mymap){
     threeOneOneData = L.geoJson(data,{ //makes a new layer and assigns the GeoJSON file to it.
       onEachFeature: function (feature, layer) {
           //adds a maker at each lat and lang of the 311 dataset
-          var new311point = L.marker([feature.properties.latitude, feature.properties.longitude]/*, {icon: xIcon}*/)//.bindPopup(feature.properties.opened);
-
+          var new311point = L.circleMarker([feature.properties.latitude, feature.properties.longitude]/*, {icon: xIcon}*/)//.bindPopup();
+          // new311point.bindPopup(feature.properties.opened)
+          // new311point.setIcon(xIcon);
           return new311point
       }
     }).addTo(mymap);
