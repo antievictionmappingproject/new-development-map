@@ -1,9 +1,12 @@
-//globals for the 311 GeoJSON/Carto process
+//globals for the 311 GeoJSON/Carto process MUST ADD ADJOINING DATA!
 var sqlQuery311 = "SELECT * FROM table_311_cases_graffitti_mission_2015_ WHERE latitude < 37.758387 AND longitude > -122.423573 AND latitude > 37.753992 AND longitude < -122.416425";
 var threeOneOneData = null;
+//var threeOneOneDataPoints = L.featureGroup;
+
 //globals for the block by block gross rent data
 var sqlQueryGrossRent = "SELECT * FROM block_census_gross_rent_data_joined_ WHERE stfid = 060750207002 OR stfid = 060750208003 OR stfid = 060750208002 OR stfid = 060750228013 OR stfid = 060750207003 OR stfid = 060750228031 OR stfid = 060750210001 OR stfid = 060750209004 OR stfid = 060750209001 OR stfid = 060750208004"
 var grossRentData = null;
+
 //gets color for the rent #
 function getColor(d) {
     //takes in rent data and returns a color for the plot
@@ -18,7 +21,7 @@ function getColor(d) {
            d > 10   ? '#ffffcc' :
                       '#FFEDA0';
 }
-//styler for the rent data 
+//styler for the rent data
 function style(feature) {
     return {
         fillColor: getColor(feature.properties.right_estimate_total),
@@ -28,19 +31,22 @@ function style(feature) {
         fillOpacity: 0.7
     };
 }
-
+//markerOptions for 311 points
+var markerOptions311 = {
+    radius: 2,
+    color: 'red'
+};
 //311 caller
 function add311(mymap){
     mymap.spin(true); //starts the load spinner
     //requests the GeoJSON file from Carto
     $.getJSON("https://ampitup.carto.com/api/v2/sql?format=GeoJSON&q=" + sqlQuery311, function(data)  {
       threeOneOneData = L.geoJson(data,{ //makes a new layer and assigns the GeoJSON file to it.
-        onEachFeature: function (feature, layer) {
+        pointToLayer: function (feature, layer) {
             //adds a maker at each lat and lang of the 311 dataset
-            var new311point = L.circleMarker([feature.properties.latitude, feature.properties.longitude]/*, {icon: xIcon}*/)//.bindPopup();
+            return L.circleMarker([feature.properties.latitude, feature.properties.longitude], markerOptions311);//.bindPopup();
             // new311point.bindPopup(feature.properties.opened)
-            // new311point.setIcon(xIcon);
-            return new311point
+            // new311point.setIcon(xIcon)
         }
       }).addTo(mymap);
 
