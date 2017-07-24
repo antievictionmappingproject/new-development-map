@@ -44,7 +44,7 @@ function add311(mymap){
       threeOneOneData = L.geoJson(data,{ //makes a new layer and assigns the GeoJSON file to it.
         pointToLayer: function (feature, layer) {
             //adds a maker at each lat and lang of the 311 dataset
-            return L.circleMarker([feature.properties.latitude, feature.properties.longitude], markerOptions311);//.bindPopup();
+            return L.circleMarker([feature.properties.latitude, feature.properties.longitude], markerOptions311).bindPopup(feature.properties.request_type);
             // new311point.bindPopup(feature.properties.opened)
             // new311point.setIcon(xIcon)
         }
@@ -87,10 +87,23 @@ $(document).ready(function(){
 
   //adds the development markers
   var vida_apt = L.marker([37.755816,-122.419749]).addTo(mymap);
+  vida_apt.bindPopup("Vida Condos");
+
+  var vara_apt = L.marker([37.767121, -122.420550]).addTo(mymap);
+  vara_apt.bindPopup("Vara Apartments");
+  
+  var sixHundred_VN = L.marker([37.763367, -122.417670]).addTo(mymap);
+  sixHundred_VN.bindPopup("600 South Van Ness");
 
   //adds the radii (1 block square)
   var rad_vida_apt = [[37.758387, -122.423573],[37.758780, -122.416922],[37.753992, -122.416425],[  37.753599, -122.423011]];
   var vida_apt_polygon = L.polygon(rad_vida_apt, {color: 'red'}).addTo(mymap);
+
+  var rad_vara_apt = [[37.769722, -122.424578],[37.764790, -122.424113],[37.765201, -122.417518],[37.769593, -122.417856], [37.769983, -122.420374]];
+  var vara_apt_polygon = L.polygon(rad_vara_apt, {color: 'red'}).addTo(mymap);
+
+  var rad_sixHundred_VN = [[37.764920, -122.421925],[37.765323, -122.415367],[37.760502, -122.414882],[37.760119, -122.421466]];
+  var sixHundred_VN_polygon = L.polygon(rad_sixHundred_VN, {color: 'red'}).addTo(mymap);
 
   //adds the 311s
   add311(mymap);
