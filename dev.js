@@ -1,3 +1,11 @@
+//class declaration for each development
+class Development {
+  constructor(name, x, y) {
+    this.name = name;
+    this.latLng = L.latLng(x, y);
+    this.marker = L.marker(this.latLng).bindPopup(this.name);
+  }
+}
 //globals for the 311 GeoJSON/Carto process MUST ADD ADJOINING DATA!
 var sqlQuery311 = "SELECT * FROM table_311_cases_graffitti_mission_2015_ WHERE latitude < 37.758387 AND longitude > -122.423573 AND latitude > 37.753992 AND longitude < -122.416425";
 var threeOneOneData = null;
@@ -44,7 +52,7 @@ function add311(mymap){
       threeOneOneData = L.geoJson(data,{ //makes a new layer and assigns the GeoJSON file to it.
         pointToLayer: function (feature, layer) {
             //adds a maker at each lat and lang of the 311 dataset
-            return L.circleMarker([feature.properties.latitude, feature.properties.longitude], markerOptions311).bindPopup(feature.properties.request_type);
+            return L.circleMarker([feature.properties.latitude, feature.properties.longitude], markerOptions311).bindPopup(feature.properties.opened);
             // new311point.bindPopup(feature.properties.opened)
             // new311point.setIcon(xIcon)
         }
@@ -85,15 +93,15 @@ $(document).ready(function(){
       attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attribution">CARTO</a> | <a href="http://www.antievictionmap.com/">Anti-Eviction Mapping Project</a>'
   }).addTo(mymap);
 
-  //adds the development markers
-  var vida_apt = L.marker([37.755816,-122.419749]).addTo(mymap);
-  vida_apt.bindPopup("Vida Condos");
+  //adds the Developments
+  var Vida = new Development("Vida Condos", 37.755816, -122.419749);
+  Vida.marker.addTo(mymap);
 
-  var vara_apt = L.marker([37.767121, -122.420550]).addTo(mymap);
-  vara_apt.bindPopup("Vara Apartments");
-  
-  var sixHundred_VN = L.marker([37.763367, -122.417670]).addTo(mymap);
-  sixHundred_VN.bindPopup("600 South Van Ness");
+  var Vara = new Development("Vara Apartments", 37.767121, -122.420550);
+  Vara.marker.addTo(mymap);
+
+  var SixHundred_VN = new Development("600 South Van Ness", 37.763367, -122.417670);
+  SixHundred_VN.marker.addTo(mymap);
 
   //adds the radii (1 block square)
   var rad_vida_apt = [[37.758387, -122.423573],[37.758780, -122.416922],[37.753992, -122.416425],[  37.753599, -122.423011]];
@@ -113,6 +121,12 @@ $(document).ready(function(){
 
   //adds event listners on the zoom buttons
   $("#vida_button").click(function() {
-      mymap.flyTo([37.755816,-122.419749], 16);
+      mymap.flyTo(Vida.latLng, 16);
+  });
+  $("#vara_button").click(function() {
+      mymap.flyTo(Vara.latLng, 16);
+  });
+  $("#shvn_button").click(function() {
+      mymap.flyTo(SixHundred_VN.latLng, 16);
   });
 });
