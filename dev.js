@@ -1,37 +1,70 @@
 //globals for the 311 GeoJSON/Carto process
 var sqlQuery311 = "SELECT * FROM table_311_cases_graffitti_mission_2015_ WHERE latitude < 37.758387 AND longitude > -122.423573 AND latitude > 37.753992 AND longitude < -122.416425";
 var threeOneOneData = null;
-//xIcon
-var xIcon = L.icon({
-    iconUrl: 'x-symbol.png',
-    shadowUrl: 'x-shadow.png',
-
-    iconSize:     [38, 38], // size of the icon
-    shadowSize:   [0, 0], // size of the shadow
-    iconAnchor:   [19,19], // point of the icon which will correspond to marker's location
-    shadowAnchor: [1, 1],  // the same for the shadow
-    popupAnchor:  [-3, -3] // point from which the popup should open relative to the iconAnchor
-});
+//globals for the block by block gross rent data
+var sqlQueryGrossRent = "SELECT * FROM block_census_gross_rent_data_joined_ WHERE stfid = 060750207002 OR stfid = 060750208003 OR stfid = 060750208002 OR stfid = 060750228013 OR stfid = 060750207003 OR stfid = 060750228031 OR stfid = 060750210001 OR stfid = 060750209004 OR stfid = 060750209001 OR stfid = 060750208004"
+var grossRentData = null;
+//gets color for the rent #
+function getColor(d) {
+    //takes in rent data and returns a color for the plot
+    return d > 2500 ? '#800026' :
+           d > 2000 ? '#bd0026' :
+           d > 1500 ? '#e31a1c' :
+           d > 1000 ? '#fc4e2a' :
+           d > 500  ? '#fd8d3c' :
+           d > 100  ? '#feb24c' :
+           d > 50   ? '#fed976' :
+           d > 20   ? '#ffeda0' :
+           d > 10   ? '#ffffcc' :
+                      '#FFEDA0';
+}
+//styler for the rent data 
+function style(feature) {
+    return {
+        fillColor: getColor(feature.properties.right_estimate_total),
+        weight: 2,
+        opacity: 1,
+        color: 'white',
+        fillOpacity: 0.7
+    };
+}
 
 //311 caller
 function add311(mymap){
     mymap.spin(true); //starts the load spinner
     //requests the GeoJSON file from Carto
     $.getJSON("https://ampitup.carto.com/api/v2/sql?format=GeoJSON&q=" + sqlQuery311, function(data)  {
-    threeOneOneData = L.geoJson(data,{ //makes a new layer and assigns the GeoJSON file to it.
-      onEachFeature: function (feature, layer) {
-          //adds a maker at each lat and lang of the 311 dataset
-          var new311point = L.circleMarker([feature.properties.latitude, feature.properties.longitude]/*, {icon: xIcon}*/)//.bindPopup();
-          // new311point.bindPopup(feature.properties.opened)
-          // new311point.setIcon(xIcon);
-          return new311point
-      }
-    }).addTo(mymap);
+      threeOneOneData = L.geoJson(data,{ //makes a new layer and assigns the GeoJSON file to it.
+        onEachFeature: function (feature, layer) {
+            //adds a maker at each lat and lang of the 311 dataset
+            var new311point = L.circleMarker([feature.properties.latitude, feature.properties.longitude]/*, {icon: xIcon}*/)//.bindPopup();
+            // new311point.bindPopup(feature.properties.opened)
+            // new311point.setIcon(xIcon);
+            return new311point
+        }
+      }).addTo(mymap);
 
     }).done(function() {
       //ends the load spinner
       mymap.spin(false);
     });
+}
+//gross rent block caller
+function addGrossRent(mymap){
+    mymap.spin(true); //starts the load spinner
+    //requests the GeoJSON file from Carto
+    $.getJSON("https://ampitup.carto.com/api/v2/sql?format=GeoJSON&q=" + sqlQueryGrossRent, function(data)  {
+      grossRentData = L.geoJson(data,{
+        style: style,
+        // onEachFeature: function (feature, layer) {
+        //   console.log(feature.properties.right_estimate_total)
+        // }
+      }).addTo(mymap);
+
+    }).done(function() {
+    //ends the load spinner
+    mymap.spin(false);
+  });
 }
 
 //runs when html is loaded
@@ -54,7 +87,10 @@ $(document).ready(function(){
   var vida_apt_polygon = L.polygon(rad_vida_apt, {color: 'red'}).addTo(mymap);
 
   //adds the 311s
-  add311(mymap)
+  add311(mymap);
+
+  //adds the blocks / gross rent data
+  addGrossRent(mymap);
 
   //adds event listners on the zoom buttons
   $("#vida_button").click(function() {
