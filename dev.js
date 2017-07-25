@@ -12,7 +12,7 @@ var threeOneOneData = null;
 //var threeOneOneDataPoints = L.featureGroup;
 
 //globals for the block by block gross rent data
-var sqlQueryGrossRent = "SELECT * FROM block_census_gross_rent_data_joined_ WHERE stfid = 060750207002 OR stfid = 060750208003 OR stfid = 060750208002 OR stfid = 060750228013 OR stfid = 060750207003 OR stfid = 060750228031 OR stfid = 060750210001 OR stfid = 060750209004 OR stfid = 060750209001 OR stfid = 060750208004"
+var sqlQueryGrossRent = "SELECT * FROM block_census_gross_rent_data_joined_ WHERE stfid = 060750207002 OR stfid = 060750208003 OR stfid = 060750208002 OR stfid = 060750228013 OR stfid = 060750207003 OR stfid = 060750228031 OR stfid = 060750210001 OR stfid = 060750209004 OR stfid = 060750209001 OR stfid = 060750208004 OR stfid = 060750201003 OR stfid = 060750201002 OR stfid = 060750202002 OR stfid = 060750202003 OR stfid = 060750201004 OR stfid = 060750208001 OR stfid = 060750177002 OR stfid = 060750228011"
 var grossRentData = null;
 
 //gets color for the rent #
@@ -51,10 +51,8 @@ function add311(mymap){
     $.getJSON("https://ampitup.carto.com/api/v2/sql?format=GeoJSON&q=" + sqlQuery311, function(data)  {
       threeOneOneData = L.geoJson(data,{ //makes a new layer and assigns the GeoJSON file to it.
         pointToLayer: function (feature, layer) {
-            //adds a maker at each lat and lang of the 311 dataset
+            //adds a circleMarker at each lat and lang of the 311 dataset
             return L.circleMarker([feature.properties.latitude, feature.properties.longitude], markerOptions311).bindPopup(feature.properties.opened);
-            // new311point.bindPopup(feature.properties.opened)
-            // new311point.setIcon(xIcon)
         }
       }).addTo(mymap);
 
@@ -70,9 +68,9 @@ function addGrossRent(mymap){
     $.getJSON("https://ampitup.carto.com/api/v2/sql?format=GeoJSON&q=" + sqlQueryGrossRent, function(data)  {
       grossRentData = L.geoJson(data,{
         style: style,
-        // onEachFeature: function (feature, layer) {
-        //   console.log(feature.properties.right_estimate_total)
-        // }
+        onEachFeature: function (feature, layer) {
+          this.bindPopup(feature.properties.right_estimate_total);
+        }
       }).addTo(mymap);
 
     }).done(function() {
@@ -93,7 +91,7 @@ $(document).ready(function(){
       attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attribution">CARTO</a> | <a href="http://www.antievictionmap.com/">Anti-Eviction Mapping Project</a>'
   }).addTo(mymap);
 
-  //adds the Developments
+  //creates & adds the Developments
   var Vida = new Development("Vida Condos", 37.755816, -122.419749);
   Vida.marker.addTo(mymap);
 
