@@ -5,6 +5,7 @@ class Development {
     this.latLng = L.latLng(x, y);
     this.marker = L.marker(this.latLng).bindPopup(this.name);
     this.date = new Date(date);
+    this.group311;
   }
   //function that allows for the constuction of the 1 block radius within the Development Class object
   addBounds(array){
@@ -51,24 +52,37 @@ var markerOptions311 = {
     radius: 2,
     color: 'red'
 };
-function dateFilter(feature, D){
-  console.log("debug!");
+//filter that compares a GeoJSON feature's opened date to the date of the current Development
+function dateFilter(feature, D, after){
   var v = new Date(feature.properties.opened);
-  if(D.date < v) return true;
+  if(after){
+    if(D.date < v) {
+      return true;
+    }
+  }else{
+    if(D.date > v){ //make sure 2 years!
+       return true;
+     }
+  }
 }
 //311 caller
-function add311(mymap, D){
-    var sqlQuery = sqlQuery311 + " WHERE latitude < " + D.bounds.getNorthWest().lat + " AND longitude > " + D.bounds.getNorthWest().lng + " AND latitude > " + D.bounds.getSouthEast().lat + " AND longitude < " + D.bounds.getSouthEast().lng; //se AND latitude >  longitude <
-    console.log(sqlQuery);
+function add311(mymap, D, after){
+    var newGroup = L.layerGroup();
+    var dotCount = 0; //counter for how many 311 reports fit
+    //creates new sqlQuery for the bounds of the current Development
+    var sqlQuery = sqlQuery311 + " WHERE latitude < " + D.bounds.getNorthWest().lat + " AND longitude > " + D.bounds.getNorthWest().lng + " AND latitude > " + D.bounds.getSouthEast().lat + " AND longitude < " + D.bounds.getSouthEast().lng;
     mymap.spin(true); //starts the load spinner
     //requests the GeoJSON file from Carto
     $.getJSON("https://ampitup.carto.com/api/v2/sql?format=GeoJSON&q=" + sqlQuery, function(data)  {
       threeOneOneData = L.geoJson(data,{ //makes a new layer and assigns the GeoJSON file to it.
-        // filter: dateFilter,
         pointToLayer: function (feature, layer) {
-
             //adds a circleMarker at each lat and lang of the 311 dataset
-            if(dateFilter(feature, D)) return L.circleMarker([feature.properties.latitude, feature.properties.longitude], markerOptions311).bindPopup(feature.properties.opened);
+            if(dateFilter(feature, D, after)){
+              dotCount++;
+              var newCircleMarker = L.circleMarker([feature.properties.latitude, feature.properties.longitude], markerOptions311).bindPopup(feature.properties.opened);
+              newGroup.addLayer(newCircleMarker);
+              return  newCircleMarker;
+            }
         }
       }).addTo(mymap);
 
@@ -76,6 +90,8 @@ function add311(mymap, D){
       //ends the load spinner
       mymap.spin(false);
     });
+    console.log(D.name + ": " + dotCount + "after?: " + after);
+    return newGroup;
 }
 //gross rent block caller
 function addGrossRent(mymap){
@@ -130,11 +146,11 @@ $(document).ready(function(){
   // var sixHundred_VN_polygon = L.polygon(rad_sixHundred_VN, {color: 'red'}).addTo(mymap);
 
   //adds the 311s
-  add311(mymap, Vida);
-  add311(mymap, Vara);
+  Vida.group311= add311(mymap, Vida, true);
+  Vara.group311 = add311(mymap, Vara, true);
 
   //adds the blocks / gross rent data
-  addGrossRent(mymap);
+  //addGrossRent(mymap);
 
   //adds event listners on the zoom buttons
   $("#vida_button").click(function() {
@@ -146,4 +162,26 @@ $(document).ready(function(){
   $("#shvn_button").click(function() {
       mymap.flyTo(SixHundred_VN.latLng, 16);
   });
+  //adds event listners for slider
+  $(".slider").click(function(){
+      if($('#timebox').is(':checked')){
+        Vida.group311.eachLayer(function (layer) {
+            mymap.removeLayer(layer);
+        });
+        Vara.group311.eachLayer(function (layer) {
+            mymap.removeLayer(layer);
+        });
+        Vida.group311= add311(mymap, Vida, false);
+        Vara.group311= add311(mymap, Vara, false);
+      }else{
+        Vida.group311.eachLayer(function (layer) {
+            mymap.removeLayer(layer);
+        });
+        Vara.group311.eachLayer(function (layer) {
+            mymap.removeLayer(layer);
+        });
+        Vara.group311 = add311(mymap, Vida, true);
+        Vara.group311 = add311(mymap, Vara, true);
+      }
+  })
 });
