@@ -92,10 +92,10 @@ $(document).ready(function(){
   }).addTo(mymap);
 
   //creates & adds the Developments
-  var Vida = new Development("Vida Condos", 37.755816, -122.419749);
+  var Vida = new Development("Vida Condos", 37.755816, -122.419749); //2015 JAN
   Vida.marker.addTo(mymap);
 
-  var Vara = new Development("Vara Apartments", 37.767121, -122.420550);
+  var Vara = new Development("Vara Apartments", 37.767121, -122.420550); //2014ish 
   Vara.marker.addTo(mymap);
 
   var SixHundred_VN = new Development("600 South Van Ness", 37.763367, -122.417670);
