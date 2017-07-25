@@ -1,13 +1,20 @@
 //class declaration for each development
 class Development {
-  constructor(name, x, y) {
+  constructor(name, x, y, date) {
     this.name = name;
     this.latLng = L.latLng(x, y);
     this.marker = L.marker(this.latLng).bindPopup(this.name);
+    this.date = new Date(date);
+  }
+  //function that allows for the constuction of the 1 block radius within the Development Class object
+  addBounds(array){
+    this.bounds = L.latLngBounds(array);
+    this.radius = L.polygon(array, {color: 'red'});
+    return this.radius;
   }
 }
 //globals for the 311 GeoJSON/Carto process MUST ADD ADJOINING DATA!
-var sqlQuery311 = "SELECT * FROM table_311_cases_graffitti_mission_2015_ WHERE latitude < 37.758387 AND longitude > -122.423573 AND latitude > 37.753992 AND longitude < -122.416425";
+var sqlQuery311 = "SELECT * FROM table_311_cases_grafiti"//"SELECT * FROM table_311_cases_graffitti_mission_2015_ WHERE latitude < 37.758387 AND longitude > -122.423573 AND latitude > 37.753992 AND longitude < -122.416425";
 var threeOneOneData = null;
 //var threeOneOneDataPoints = L.featureGroup;
 
@@ -44,15 +51,24 @@ var markerOptions311 = {
     radius: 2,
     color: 'red'
 };
+function dateFilter(feature, D){
+  console.log("debug!");
+  var v = new Date(feature.properties.opened);
+  if(D.date < v) return true;
+}
 //311 caller
-function add311(mymap){
+function add311(mymap, D){
+    var sqlQuery = sqlQuery311 + " WHERE latitude < " + D.bounds.getNorthWest().lat + " AND longitude > " + D.bounds.getNorthWest().lng + " AND latitude > " + D.bounds.getSouthEast().lat + " AND longitude < " + D.bounds.getSouthEast().lng; //se AND latitude >  longitude <
+    console.log(sqlQuery);
     mymap.spin(true); //starts the load spinner
     //requests the GeoJSON file from Carto
-    $.getJSON("https://ampitup.carto.com/api/v2/sql?format=GeoJSON&q=" + sqlQuery311, function(data)  {
+    $.getJSON("https://ampitup.carto.com/api/v2/sql?format=GeoJSON&q=" + sqlQuery, function(data)  {
       threeOneOneData = L.geoJson(data,{ //makes a new layer and assigns the GeoJSON file to it.
+        // filter: dateFilter,
         pointToLayer: function (feature, layer) {
+
             //adds a circleMarker at each lat and lang of the 311 dataset
-            return L.circleMarker([feature.properties.latitude, feature.properties.longitude], markerOptions311).bindPopup(feature.properties.opened);
+            if(dateFilter(feature, D)) return L.circleMarker([feature.properties.latitude, feature.properties.longitude], markerOptions311).bindPopup(feature.properties.opened);
         }
       }).addTo(mymap);
 
@@ -92,27 +108,30 @@ $(document).ready(function(){
   }).addTo(mymap);
 
   //creates & adds the Developments
-  var Vida = new Development("Vida Condos", 37.755816, -122.419749); //2015 JAN
+  const Vida = new Development("Vida Condos", 37.755816, -122.419749, "2015 JAN" );
   Vida.marker.addTo(mymap);
 
-  var Vara = new Development("Vara Apartments", 37.767121, -122.420550); //2014ish
+  const Vara = new Development("Vara Apartments", 37.767121, -122.420550, "11/4/2014");
   Vara.marker.addTo(mymap);
 
-  var SixHundred_VN = new Development("600 South Van Ness", 37.763367, -122.417670);
-  SixHundred_VN.marker.addTo(mymap);
+  //this Development is way to new!
+  // var SixHundred_VN = new Development("600 South Van Ness", 37.763367, -122.417670, "2015 JAN");
+  // SixHundred_VN.marker.addTo(mymap);
 
   //adds the radii (1 block square)
   var rad_vida_apt = [[37.758387, -122.423573],[37.758780, -122.416922],[37.753992, -122.416425],[  37.753599, -122.423011]];
-  var vida_apt_polygon = L.polygon(rad_vida_apt, {color: 'red'}).addTo(mymap);
+  Vida.addBounds(rad_vida_apt).addTo(mymap);
 
   var rad_vara_apt = [[37.769722, -122.424578],[37.764790, -122.424113],[37.765201, -122.417518],[37.769593, -122.417856], [37.769983, -122.420374]];
-  var vara_apt_polygon = L.polygon(rad_vara_apt, {color: 'red'}).addTo(mymap);
+  Vara.addBounds(rad_vara_apt).addTo(mymap);
 
-  var rad_sixHundred_VN = [[37.764920, -122.421925],[37.765323, -122.415367],[37.760502, -122.414882],[37.760119, -122.421466]];
-  var sixHundred_VN_polygon = L.polygon(rad_sixHundred_VN, {color: 'red'}).addTo(mymap);
+  //this Development is way to new!
+  // var rad_sixHundred_VN = [[37.764920, -122.421925],[37.765323, -122.415367],[37.760502, -122.414882],[37.760119, -122.421466]];
+  // var sixHundred_VN_polygon = L.polygon(rad_sixHundred_VN, {color: 'red'}).addTo(mymap);
 
   //adds the 311s
-  add311(mymap);
+  add311(mymap, Vida);
+  add311(mymap, Vara);
 
   //adds the blocks / gross rent data
   addGrossRent(mymap);
