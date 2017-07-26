@@ -6,6 +6,7 @@ class Development {
     this.marker = L.marker(this.latLng).bindPopup(this.name);
     this.date = new Date(date);
     this.group311;
+    this.countName = name.substring(0, 4).toLowerCase() + "311s"
   }
   //function that allows for the constuction of the 1 block radius within the Development Class object
   addBounds(array){
@@ -53,18 +54,24 @@ var markerOptions311 = {
     color: 'red'
 };
 //filter that compares a GeoJSON feature's opened date to the date of the current Development
-function dateFilter(feature, D, after){
-  var v = new Date(feature.properties.opened);
+function dateFilter(v, D, after){
   if(after){
-    if(D.date < v) {
+    var temp = new Date(D.date); //creates a +2 year date variable
+    tempi =D.date.getFullYear();
+    temp.setYear( tempi + 2 );
+    if(D.date < v  && v < temp) {
       return true;
     }
   }else{
-    if(D.date > v){ //make sure 2 years!
+    var temp = new Date(D.date); //creates a - 2 year date variable 
+    tempi =D.date.getFullYear();
+    temp.setYear( tempi - 2 );
+    if(D.date > v && v > temp){ //make sure 2 years!
        return true;
      }
   }
 }
+
 //311 caller
 function add311(mymap, D, after){
     var newGroup = L.layerGroup();
@@ -77,20 +84,22 @@ function add311(mymap, D, after){
       threeOneOneData = L.geoJson(data,{ //makes a new layer and assigns the GeoJSON file to it.
         pointToLayer: function (feature, layer) {
             //adds a circleMarker at each lat and lang of the 311 dataset
-            if(dateFilter(feature, D, after)){
+            var date = new Date(feature.properties.opened);
+            if(dateFilter(date, D, after)){
+              //console.log(true);
               dotCount++;
-              var newCircleMarker = L.circleMarker([feature.properties.latitude, feature.properties.longitude], markerOptions311).bindPopup(feature.properties.opened);
+              var newCircleMarker = L.circleMarker([feature.properties.latitude, feature.properties.longitude], markerOptions311).bindPopup(date.toDateString());
               newGroup.addLayer(newCircleMarker);
               return  newCircleMarker;
             }
         }
       }).addTo(mymap);
-
+      $("#" + D.countName).html(dotCount);
     }).done(function() {
       //ends the load spinner
       mymap.spin(false);
     });
-    console.log(D.name + ": " + dotCount + "after?: " + after);
+
     return newGroup;
 }
 //gross rent block caller
@@ -110,12 +119,20 @@ function addGrossRent(mymap){
     mymap.spin(false);
   });
 }
+//updates the map 311s
+function timeHelper(map, D, after){ //a leaflet map, a Development object, a true false of wheter to get data from AFTER the dev's date or not
+  D.group311.eachLayer(function (layer) {
+      map.removeLayer(layer);
+  });
+  D.group311= add311(map, D, after);
+}
+
 
 //runs when html is loaded
 $(document).ready(function(){
 
   //creates map
-  var mymap = L.map('mapid').setView([37.766625, -122.440126], 12);
+  var mymap = L.map('mapid').setView([37.759822, -122.414808/*37.766625, -122.440126*/], 14);
 
   //adds carto base layer to the map
   L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
@@ -165,23 +182,13 @@ $(document).ready(function(){
   //adds event listners for slider
   $(".slider").click(function(){
       if($('#timebox').is(':checked')){
-        Vida.group311.eachLayer(function (layer) {
-            mymap.removeLayer(layer);
-        });
-        Vara.group311.eachLayer(function (layer) {
-            mymap.removeLayer(layer);
-        });
-        Vida.group311= add311(mymap, Vida, false);
-        Vara.group311= add311(mymap, Vara, false);
+        $("#yearSpan").html("Since");
+        timeHelper(mymap, Vida, true);
+        timeHelper(mymap, Vara, true);
       }else{
-        Vida.group311.eachLayer(function (layer) {
-            mymap.removeLayer(layer);
-        });
-        Vara.group311.eachLayer(function (layer) {
-            mymap.removeLayer(layer);
-        });
-        Vara.group311 = add311(mymap, Vida, true);
-        Vara.group311 = add311(mymap, Vara, true);
+        $("#yearSpan").html("Before");
+        timeHelper(mymap, Vida, false);
+        timeHelper(mymap, Vara, false);
       }
   })
 });

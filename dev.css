@@ -1,13 +1,14 @@
-html, body, #mapid {
-      position: relative;
-      height: 100%;
-      padding: 0;
-      margin: 0;
-      z-index: 0;
-    }
+#mapid {
+  position: fixed;
+  height: 100%;
+  width: 69%
+  /*padding: 0;
+  margin: 0;*/
+          /*z-index: 0;*/
+}
 #sidebar{
 	background-color: #FFF;
-  z-index: 1;
+  /*z-index: ;*/
 	position: relative;
   top: -100%;
   right: -69%;
@@ -65,4 +66,13 @@ input:checked + .slider:before {
   -webkit-transform: translateX(26px);
   -ms-transform: translateX(26px);
   transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
 }
