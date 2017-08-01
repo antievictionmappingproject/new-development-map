@@ -1,25 +1,32 @@
 #mapid {
-  position: fixed;
-  height: 100%;
-  width: 69%
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  height: 101%;
+  width: 69%;
+  margin-left: 0px;
+  margin-top: 0px;
   /*padding: 0;
   margin: 0;*/
           /*z-index: 0;*/
 }
 #sidebar{
 	background-color: #FFF;
+
   /*z-index: ;*/
-	position: relative;
-  top: -100%;
-  right: -69%;
+	position: absolute;
+  /*top: 100%;*/
+  right: 1px;
 	width: 31%;
-	height: 100%;
+	/*height: 80%;*/
 	overflow: auto;
   display: block;
 }
 
 /* The switch - the box around the slider */
 .switch {
+  margin: auto;
+   width: 50%;
   position: relative;
   display: inline-block;
   width: 60px;

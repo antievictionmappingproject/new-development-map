@@ -1,3 +1,7 @@
+//evicton data in carto \/
+//all_sf_evictons CARTO
+
+
 //class declaration for each development
 class Development {
   constructor(name, x, y, date) {
@@ -6,7 +10,8 @@ class Development {
     this.marker = L.marker(this.latLng).bindPopup(this.name);
     this.date = new Date(date);
     this.group311;
-    this.countName = name.substring(0, 4).toLowerCase() + "311s"
+    this.groupEvictData;
+    this.countName = name.substring(0, 4).toLowerCase();
   }
   //function that allows for the constuction of the 1 block radius within the Development Class object
   addBounds(array){
@@ -24,6 +29,9 @@ var threeOneOneData = null;
 var sqlQueryGrossRent = "SELECT * FROM block_census_gross_rent_data_joined_ WHERE stfid = 060750207002 OR stfid = 060750208003 OR stfid = 060750208002 OR stfid = 060750228013 OR stfid = 060750207003 OR stfid = 060750228031 OR stfid = 060750210001 OR stfid = 060750209004 OR stfid = 060750209001 OR stfid = 060750208004 OR stfid = 060750201003 OR stfid = 060750201002 OR stfid = 060750202002 OR stfid = 060750202003 OR stfid = 060750201004 OR stfid = 060750208001 OR stfid = 060750177002 OR stfid = 060750228011"
 var grossRentData = null;
 
+//globals for the Eviction data
+var sqlQueryEvictData = "SELECT * FROM all_sf_evictions all_sf_evictions_2017"
+var evictionData = null;
 //gets color for the rent #
 function getColor(d) {
     //takes in rent data and returns a color for the plot
@@ -48,25 +56,28 @@ function style(feature) {
         fillOpacity: 0.7
     };
 }
-//markerOptions for 311 points
+//markerOptions for points
 var markerOptions311 = {
+    radius: 2,
+    color: 'blue'
+};
+var markerOptionsEvict = {
     radius: 2,
     color: 'red'
 };
 //filter that compares a GeoJSON feature's opened date to the date of the current Development
 function dateFilter(v, D, after){
+  var mostRecent = new Date("7/16/2017  12:59:57 AM"); //most recent data point update if u update the 311 data
+  var diff = mostRecent - D.date;
   if(after){
-    var temp = new Date(D.date); //creates a +2 year date variable
-    tempi =D.date.getFullYear();
-    temp.setYear( tempi + 2 );
+    var temp = new Date(D.date.valueOf() + diff); //creates a dif year date variable
     if(D.date < v  && v < temp) {
       return true;
     }
   }else{
-    var temp = new Date(D.date); //creates a - 2 year date variable 
-    tempi =D.date.getFullYear();
-    temp.setYear( tempi - 2 );
-    if(D.date > v && v > temp){ //make sure 2 years!
+    var temp = new Date(D.date.valueOf() - diff); //creates a diff year date variable
+    //console.log(temp);
+    if(D.date > v && v > temp){
        return true;
      }
   }
@@ -94,7 +105,7 @@ function add311(mymap, D, after){
             }
         }
       }).addTo(mymap);
-      $("#" + D.countName).html(dotCount);
+      $("#" + D.countName  + "311s").html(dotCount);
     }).done(function() {
       //ends the load spinner
       mymap.spin(false);
@@ -102,9 +113,39 @@ function add311(mymap, D, after){
 
     return newGroup;
 }
+//add eviction points
+function addEvict(mymap, D, after){
+    var newGroup = L.layerGroup();
+    var dotCount = 0; //counter for how many eviction reports fit
+    //creates new sqlQuery for the bounds of the current Development
+    var sqlQuery = sqlQueryEvictData + " WHERE latitude < " + D.bounds.getNorthWest().lat + " AND longitude > " + D.bounds.getNorthWest().lng + " AND latitude > " + D.bounds.getSouthEast().lat + " AND longitude < " + D.bounds.getSouthEast().lng;
+    //mymap.spin(true); //starts the load spinner
+    //requests the GeoJSON file from Carto
+    $.getJSON("https://ampitup.carto.com/api/v2/sql?format=GeoJSON&q=" + sqlQuery, function(data)  {
+      evictionData = L.geoJson(data,{ //makes a new layer and assigns the GeoJSON file to it.
+        pointToLayer: function (feature, layer) {
+            //adds a circleMarker at each lat and lang of the 311 dataset
+            var date = new Date(feature.properties.date);
+            if(dateFilter(date, D, after)){
+              //console.log(true);
+              dotCount++;
+              var newCircleMarker = L.circleMarker([feature.properties.latitude, feature.properties.longitude], markerOptionsEvict).bindPopup(date.toDateString() + ": " + feature.properties.type);
+              newGroup.addLayer(newCircleMarker);
+              return  newCircleMarker;
+            }
+        }
+      }).addTo(mymap);
+      $("#" + D.countName + "Evictions").html(dotCount);
+    }).done(function() {
+      //ends the load spinner
+      //mymap.spin(false);
+    });
+
+    return newGroup;
+}
 //gross rent block caller
 function addGrossRent(mymap){
-    mymap.spin(true); //starts the load spinner
+    //mymap.spin(true); //starts the load spinner
     //requests the GeoJSON file from Carto
     $.getJSON("https://ampitup.carto.com/api/v2/sql?format=GeoJSON&q=" + sqlQueryGrossRent, function(data)  {
       grossRentData = L.geoJson(data,{
@@ -116,7 +157,7 @@ function addGrossRent(mymap){
 
     }).done(function() {
     //ends the load spinner
-    mymap.spin(false);
+    //mymap.spin(false);
   });
 }
 //updates the map 311s
@@ -124,7 +165,11 @@ function timeHelper(map, D, after){ //a leaflet map, a Development object, a tru
   D.group311.eachLayer(function (layer) {
       map.removeLayer(layer);
   });
+  D.groupEvictData.eachLayer(function (layer){
+    map.removeLayer(layer);
+  });
   D.group311= add311(map, D, after);
+  D.groupEvictData = addEvict(map, D , after);
 }
 
 
@@ -147,6 +192,8 @@ $(document).ready(function(){
   const Vara = new Development("Vara Apartments", 37.767121, -122.420550, "11/4/2014");
   Vara.marker.addTo(mymap);
 
+  //const Valencia = new Development("Valencia Apartments", 37.766292, -122.421816, "OCT 16, 2012, 2:00PM")
+  //Valencia.marker.addTo(mymap);
   //this Development is way to new!
   // var SixHundred_VN = new Development("600 South Van Ness", 37.763367, -122.417670, "2015 JAN");
   // SixHundred_VN.marker.addTo(mymap);
@@ -158,17 +205,26 @@ $(document).ready(function(){
   var rad_vara_apt = [[37.769722, -122.424578],[37.764790, -122.424113],[37.765201, -122.417518],[37.769593, -122.417856], [37.769983, -122.420374]];
   Vara.addBounds(rad_vara_apt).addTo(mymap);
 
+  //var rad_valencia_apt = [[37.768044, -122.424439],[37.768434, -122.417851],[37.763566, -122.417422], [37.763209, -122.423988]];
+  //Valencia.addBounds(rad_valencia_apt).addTo(mymap);
+
   //this Development is way to new!
   // var rad_sixHundred_VN = [[37.764920, -122.421925],[37.765323, -122.415367],[37.760502, -122.414882],[37.760119, -122.421466]];
   // var sixHundred_VN_polygon = L.polygon(rad_sixHundred_VN, {color: 'red'}).addTo(mymap);
 
   //adds the 311s
+  mymap.spin(true);
   Vida.group311= add311(mymap, Vida, true);
   Vara.group311 = add311(mymap, Vara, true);
+  mymap.spin(false);
+  //Valencia.group311 = add311(mymap, Valencia, true);
 
   //adds the blocks / gross rent data
   //addGrossRent(mymap);
 
+  //adds the eviction data
+  Vida.groupEvictData= addEvict(mymap, Vida, true);
+  Vara.groupEvictData = addEvict(mymap, Vara, true);
   //adds event listners on the zoom buttons
   $("#vida_button").click(function() {
       mymap.flyTo(Vida.latLng, 16);
@@ -176,19 +232,21 @@ $(document).ready(function(){
   $("#vara_button").click(function() {
       mymap.flyTo(Vara.latLng, 16);
   });
-  $("#shvn_button").click(function() {
-      mymap.flyTo(SixHundred_VN.latLng, 16);
-  });
+  // $("#shvn_button").click(function() {
+  //     mymap.flyTo(SixHundred_VN.latLng, 16);
+  // });
   //adds event listners for slider
   $(".slider").click(function(){
+      mymap.spin(true);
       if($('#timebox').is(':checked')){
-        $("#yearSpan").html("Since");
+        $(".yearSpan").html("Since");
         timeHelper(mymap, Vida, true);
         timeHelper(mymap, Vara, true);
       }else{
-        $("#yearSpan").html("Before");
+        $(".yearSpan").html("Before");
         timeHelper(mymap, Vida, false);
         timeHelper(mymap, Vara, false);
       }
+      mymap.spin(false);
   })
 });
