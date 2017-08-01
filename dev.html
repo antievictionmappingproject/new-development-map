@@ -18,6 +18,7 @@
 
     <script type="text/javascript" src="leaflet.spin.min.js"><!--loading spinner ad on--></script>
     <script type="text/javascript" src="dev.js"><!--main js documen_t--></script>
+    <link rel="icon" type="image/png" href="stencil.png">
     <title>Impact of Developments | Anti-Eviction Mapping Project</title>
 </head>
 
@@ -26,17 +27,24 @@
     <div id="sidebar">
       <div id="wrapper">
         <p> Impact of New Developments in the Mission</p>
+        <div class= "buttonLabel" id="after">
+          Since Development
+        </div>
+        <label class="switch" >
+            <input type="checkbox" id="timebox"> <span class="slider"></span>
+        </label>
+        <div class= "buttonLabel" id="before">
+          Before Development
+        </div>
+
+        <div id="count_wrapper">
+            <p class= "subheader">311s <span class="yearSpan">Since</span> Development</p>
+            <p><b>Vida Area:</b> <span id="vida311s"> </span> 311s | <b>Vara Area:</b> <span id="vara311s"> </span> 311s <!--<b>Valencia Area:</b> <span id="vale311s"> </span> 311s--></p>
+            <p class= "subheader">Evictions <span class="yearSpan">Since</span> Development</p>
+            <p><b>Vida Area:</b> <span id="vidaEvictions"> </span> Evictions | <b>Vara Area:</b> <span id="varaEvictions"> </span> Evictions <!--<b>Valencia Area:</b> <span id="valeEvictions"> </span> Evictions --></p>
+        </div>
         <button id="vida_button" class="location_button">Vida Condos</button>
         <button id="vara_button" class="location_button">Vara Apartments</button>
-          <div id="count_wrapper")
-            <p>311s <span class="yearSpan">Since</span> Development</p>
-            <p><b>Vida Area:</b> <span id="vida311s"> </span> 311s | <b>Vara Area:</b> <span id="vara311s"> </span> 311s <b>Valencia Area:</b> <span id="vale311s"> </span> 311s</p>
-            <p>Evictions <span class="yearSpan">Since</span> Development</p>
-            <p><b>Vida Area:</b> <span id="vidaEvictions"> </span> Evictions | <b>Vara Area:</b> <span id="varaEvictions"> </span> Evictions <b>Valencia Area:</b> <span id="valeEvictions"> </span> Evictions</p>
-            <label class="switch">
-                <input type="checkbox" id="timebox"> <span class="slider"></span>
-            </label>
-          </div>
       </div>
     </div>
 </body>

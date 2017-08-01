@@ -58,11 +58,11 @@ function style(feature) {
 }
 //markerOptions for points
 var markerOptions311 = {
-    radius: 2,
+    radius: 1,
     color: 'blue'
 };
 var markerOptionsEvict = {
-    radius: 2,
+    radius: 1,
     color: 'red'
 };
 //filter that compares a GeoJSON feature's opened date to the date of the current Development
@@ -160,7 +160,7 @@ function addGrossRent(mymap){
     //mymap.spin(false);
   });
 }
-//updates the map 311s
+//updates the map on slider click
 function timeHelper(map, D, after){ //a leaflet map, a Development object, a true false of wheter to get data from AFTER the dev's date or not
   D.group311.eachLayer(function (layer) {
       map.removeLayer(layer);
@@ -240,10 +240,14 @@ $(document).ready(function(){
       mymap.spin(true);
       if($('#timebox').is(':checked')){
         $(".yearSpan").html("Since");
+        $("#after").css( "font-weight", "bold" );
+        $("#before").css( "font-weight", "normal" );
         timeHelper(mymap, Vida, true);
         timeHelper(mymap, Vara, true);
       }else{
         $(".yearSpan").html("Before");
+        $("#before").css( "font-weight", "bold" );
+        $("#after").css( "font-weight", "normal" );
         timeHelper(mymap, Vida, false);
         timeHelper(mymap, Vara, false);
       }
