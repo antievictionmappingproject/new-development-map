@@ -89,7 +89,6 @@ function add311(mymap, D, after){
     var dotCount = 0; //counter for how many 311 reports fit
     //creates new sqlQuery for the bounds of the current Development
     var sqlQuery = sqlQuery311 + " WHERE latitude < " + D.bounds.getNorthWest().lat + " AND longitude > " + D.bounds.getNorthWest().lng + " AND latitude > " + D.bounds.getSouthEast().lat + " AND longitude < " + D.bounds.getSouthEast().lng;
-    mymap.spin(true); //starts the load spinner
     //requests the GeoJSON file from Carto
     $.getJSON("https://ampitup.carto.com/api/v2/sql?format=GeoJSON&q=" + sqlQuery, function(data)  {
       threeOneOneData = L.geoJson(data,{ //makes a new layer and assigns the GeoJSON file to it.
@@ -106,47 +105,64 @@ function add311(mymap, D, after){
         }
       }).addTo(mymap);
       $("#" + D.countName  + "311s").html(dotCount);
-    }).done(function() {
-      //ends the load spinner
-      mymap.spin(false);
-    });
-
+    })
     return newGroup;
 }
 //add eviction points
 function addEvict(mymap, D, after){
     var newGroup = L.layerGroup();
     var dotCount = 0; //counter for how many eviction reports fit
+    //var repeatedMap = new Map; //to contain the repeated values
+    var arr = [""];
     //creates new sqlQuery for the bounds of the current Development
     var sqlQuery = sqlQueryEvictData + " WHERE latitude < " + D.bounds.getNorthWest().lat + " AND longitude > " + D.bounds.getNorthWest().lng + " AND latitude > " + D.bounds.getSouthEast().lat + " AND longitude < " + D.bounds.getSouthEast().lng;
-    //mymap.spin(true); //starts the load spinner
     //requests the GeoJSON file from Carto
     $.getJSON("https://ampitup.carto.com/api/v2/sql?format=GeoJSON&q=" + sqlQuery, function(data)  {
       evictionData = L.geoJson(data,{ //makes a new layer and assigns the GeoJSON file to it.
         pointToLayer: function (feature, layer) {
             //adds a circleMarker at each lat and lang of the 311 dataset
-            var date = new Date(feature.properties.date);
-            if(dateFilter(date, D, after)){
-              //console.log(true);
-              dotCount++;
-              var newCircleMarker = L.circleMarker([feature.properties.latitude, feature.properties.longitude], markerOptionsEvict).bindPopup(date.toDateString() + ": " + feature.properties.type);
-              newGroup.addLayer(newCircleMarker);
-              return  newCircleMarker;
+            var date = new Date(feature.properties.date); //creates a new date object matching the date of the current feature
+
+            if(dateFilter(date, D, after)){ //if it fits the date (before/after)
+              dotCount++; //adds one to the dot count | Its a hit!
+              var newLatLng = L.latLng(feature.properties.latitude, feature.properties.longitude); //creates a new latLng obj from feature prop
+              var popString = date.toDateString() + ": " + feature.properties.type;
+              console.log(newLatLng.toString() + ", " + dotCount);
+              var arr = newGroup.getLayers();
+              if(arr.length == 0){
+                var newCircleMarker = L.circleMarker(newLatLng, markerOptionsEvict).bindPopup(popString);
+                newGroup.addLayer(newCircleMarker);
+                return  newCircleMarker;
+              }
+              for (var i = 0; i < arr.length ; i++){ //checks to make sure that no points have same latLng
+                if( !newLatLng.equals( arr[i].getLatLng() ) ){
+                  var newCircleMarker = L.circleMarker(newLatLng, markerOptionsEvict).bindPopup(popString); //creates new point
+                  newGroup.addLayer(newCircleMarker); //adds point to group
+                  return  newCircleMarker; //adds point to map
+                }else{ //if the new point matches the latLng of an old point
+                  var oldPop = arr[i]._popup.getContent(); //gets the popup string attached to the marker
+                  if (oldPop == popString){ //if the strings are the same adds "2x" to the end of the string
+                    arr[i]._popup.setContent(oldPop + "2x");
+                  }else if( oldPop[oldPop.length-1] == "x"){ //keeps adding to the x num if they are the same
+                    var exNum =  parseInt(oldPop[oldPop.length -2]) + 1;
+                    arr[i]._popup.setContent( oldPop.substring(0, oldPop.length-3) + " " + exNum + "x");
+                  }else{ //if the strings are diffent concatenates them
+                    arr[i]._popup.setContent(oldPop + " | " + popString);
+                  }
+                  var rad = arr[i].getRadius(); //increases the radius of the point by 5px
+                  arr[i].setRadius(rad+5);
+                }
             }
+          }
         }
       }).addTo(mymap);
       $("#" + D.countName + "Evictions").html(dotCount);
-    }).done(function() {
-      //ends the load spinner
-      //mymap.spin(false);
     });
-
+    console.log(newGroup);
     return newGroup;
 }
 //gross rent block caller
 function addGrossRent(mymap){
-    //mymap.spin(true); //starts the load spinner
-    //requests the GeoJSON file from Carto
     $.getJSON("https://ampitup.carto.com/api/v2/sql?format=GeoJSON&q=" + sqlQueryGrossRent, function(data)  {
       grossRentData = L.geoJson(data,{
         style: style,
@@ -155,10 +171,7 @@ function addGrossRent(mymap){
         }
       }).addTo(mymap);
 
-    }).done(function() {
-    //ends the load spinner
-    //mymap.spin(false);
-  });
+    });
 }
 //updates the map on slider click
 function timeHelper(map, D, after){ //a leaflet map, a Development object, a true false of wheter to get data from AFTER the dev's date or not
@@ -213,18 +226,19 @@ $(document).ready(function(){
   // var sixHundred_VN_polygon = L.polygon(rad_sixHundred_VN, {color: 'red'}).addTo(mymap);
 
   //adds the 311s
-  mymap.spin(true);
+  mymap.spin(true); //starts loading symbol
   Vida.group311= add311(mymap, Vida, true);
   Vara.group311 = add311(mymap, Vara, true);
-  mymap.spin(false);
+
   //Valencia.group311 = add311(mymap, Valencia, true);
 
   //adds the blocks / gross rent data
-  //addGrossRent(mymap);
+  addGrossRent(mymap);
 
   //adds the eviction data
   Vida.groupEvictData= addEvict(mymap, Vida, true);
   Vara.groupEvictData = addEvict(mymap, Vara, true);
+  mymap.spin(false);
   //adds event listners on the zoom buttons
   $("#vida_button").click(function() {
       mymap.flyTo(Vida.latLng, 16);
