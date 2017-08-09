@@ -7,9 +7,17 @@ var mostRecent = new Date("7/16/2017  12:59:57 AM");
 var sqlQuery311 = "SELECT * FROM table_311_cases_grafiti";
 var threeOneOneDataPoints = null;
 
-//globals for the block by block gross rent data
-var sqlQueryGrossRent = "SELECT * FROM block_census_gross_rent_data_joined_ WHERE stfid = 060750207002 OR stfid = 060750208003 OR stfid = 060750208002 OR stfid = 060750228013 OR stfid = 060750207003 OR stfid = 060750228031 OR stfid = 060750210001 OR stfid = 060750209004 OR stfid = 060750209001 OR stfid = 060750208004 OR stfid = 060750201003 OR stfid = 060750201002 OR stfid = 060750202002 OR stfid = 060750202003 OR stfid = 060750201004 OR stfid = 060750208001 OR stfid = 060750177002 OR stfid = 060750228011";
-var grossRentData = null;
+//globals for the block by block rent data
+// var sqlQueryGrossRent = "SELECT * FROM block_census_gross_rent_data_joined_ WHERE stfid = 060750207002 OR stfid = 060750208003 OR stfid = 060750208002 OR stfid = 060750228013 OR stfid = 060750207003 OR stfid = 060750228031 OR stfid = 060750210001 OR stfid = 060750209004 OR stfid = 060750209001 OR stfid = 060750208004 OR stfid = 060750201003 OR stfid = 060750201002 OR stfid = 060750202002 OR stfid = 060750202003 OR stfid = 060750201004 OR stfid = 060750208001 OR stfid = 060750177002 OR stfid = 060750228011";
+var htmlQueryAdress= "https://maps.googleapis.com/maps/api/geocode/json?latlng="
+var googleKey = "AIzaSyA-wUgzhcGmxYL1UtDz_7luj8AW0uEy0aw"; //  //<-Leon's " MY CURRENT ONE = AIzaSyCFYXWW8U0NJLIE3-V1SU7XOy_HVI5iYlI"; FLORA's:"AIzaSyCSNr6lqZgp0tD94CCWobIovInlQIVozTo"
+var sqlQueryRent = "SELECT * FROM city_blocks_san_francisco_";
+var grantZillowKey ="X1-ZWz192ti1v0por_85kuc";
+var aempZillowKey = "X1-ZWz192sijazq4r_8uv2u";
+var ydl_ID = "dj0yJmk9czJSdDQ4V0FJQlVmJmQ9WVdrOU4xbENTMGxGTmpRbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD01Nw--";
+var ydl_SECRET = "f9bc4297b3bf9f36702b2584247df79c497df558";
+var yqlBaseURI = 'http://query.yahooapis.com/v1/yql';
+var rentData = null;
 
 //globals for the Eviction data
 var sqlQueryEvictData = "SELECT * FROM all_sf_evictions all_sf_evictions_2017"
@@ -19,21 +27,22 @@ var evictionData = null;
 class Development {
   //constructs a new Development object
   constructor(name, x, y, date) {
-    this.name = name;
-    this.latLng = L.latLng(x, y);
-    this.marker = L.marker(this.latLng).bindPopup(this.name);
-    this.date = new Date(date);
+    this.name = name; //name of dev for popup
+    this.latLng = L.latLng(x, y); //latLng of dev for flyTo
+    this.marker = L.marker(this.latLng).bindPopup(this.name); //maker object of dev
+    this.date = new Date(date); //date that the dev went in
     this.group311;
     this.groupEvictData;
-    this.countName = name.substring(0, 4).toLowerCase();
+    this.countName = name.substring(0, 4).toLowerCase(); //name to be used for the html fills
   }
   //function that allows for the constuction of the 1 block radius within the Development Class object
   addBounds(array){
     this.bounds = L.latLngBounds(array);
-    this.radius = L.polygon(array, {color: 'red'});
+    this.radius = L.polygon(array, {color: 'red', fill: false});
     return this.radius;
   }
 }
+var VidaH
 //###DECLARATION OF FUNCTIONS###
 
 //gets color for the rent number
@@ -130,7 +139,6 @@ function addEvict(mymap, D, after){
               dotCount++; //adds one to the dot count | Its a hit!
               var newLatLng = L.latLng(feature.properties.latitude, feature.properties.longitude); //creates a new latLng obj from feature prop
               var popString = date.toDateString() + ": " + feature.properties.type;
-              console.log(newLatLng.toString() + ", " + dotCount);
               var arr = newGroup.getLayers();
               if(arr.length == 0){
                 var newCircleMarker = L.circleMarker(newLatLng, markerOptionsEvict).bindPopup(popString);
@@ -161,20 +169,74 @@ function addEvict(mymap, D, after){
       }).addTo(mymap);
       $("#" + D.countName + "Evictions").html(dotCount);
     });
-    console.log(newGroup);
     return newGroup;
 }
+
+
+
 //gross rent block caller (adds polygons to the map)
-function addGrossRent(mymap){
-    $.getJSON("https://ampitup.carto.com/api/v2/sql?format=GeoJSON&q=" + sqlQueryGrossRent, function(data)  {
-      grossRentData = L.geoJson(data,{
-        style: style,
-        onEachFeature: function (feature, layer) {
+function addRent(mymap, D){
+    sodaQueryBlocks= htmlQueryAdress + sqlQueryRent;
+    $.getJSON("https://ampitup.carto.com/api/v2/sql?format=GeoJSON&q=" + sqlQueryRent, function(data)  {
+      //grossRentData = L.geoJson(data,{
+        //filter: function (feature) {
+        var i = 0;
+           var rentData =  L.geoJson(data, {
+             filter: function (feature/*, layer*/) {
+              var b = L.latLngBounds(feature.geometry.coordinates).getCenter();//.getTopRight();
+              var b1 = L.latLng(b.lng, b.lat);
+               if(D.radius.getBounds().contains(b1)){
+                 return true;
+               }else{
+                 return false;
+               }
+          },
+            onEachFeature: function (feature, layer){
+              var currentAddress = feature.properties.to_st + "+" + feature.properties.street + "+" + feature.properties.st_type;
+              var newUrl = "http://www.zillow.com/webservice/GetSearchResults.htm?zws-id=" + aempZillowKey + "&address=" + currentAddress.toLowerCase() + "&citystatezip=SanFrancisco%2C+CA";
+              var yqlURL = yqlBaseURI + "?q=" + encodeURIComponent("select * from xml where url='" + newUrl + "'") + "&format=xml&callback=?";
+              $.ajax({
+                type: 'POST',
+                url: 'zillow.php',
+                data: { address: currentAddress },
+                success: function(response) {
+                  //var results = data.results;
+                  console.log(response);
+                }
+              });
+            //  var yqlHTML = "select * from html where url=";
+            //  var xhr = new XMLHttpRequest();
+            //  xhr.open("GET" , newUrl);
+            //  var data = xhr.responseXML
+              // $.ajax({
+              //   url: yqlURL,// + "?",
+              //
+              //   jsonp: "$jsonp",
+              //   dataType: "jsonp",
+              //   jsonpCallback: 'callback',
+              //   success: function (data) {
 
-        }
-      }).addTo(mymap);
+                  //var resultURL =  <homedetails>
+                  // $.ajax({
+                  //   url: resultURL,
+                  //   publiclyCallable: true;
+                  //   success: function(data) {
+                  //     alert(data);
+                  //   }
+                  // });
+                  //<meta property="zillow_fb:description"
+                  //"The Rent Zestimate for this home is "
+                  //console.log(data);
+                  //layer.bindPopup(data);
+                }
+              //});
+          //}
+        }).addTo(mymap);
 
-    });
+      //  }
+    });//.addTo(mymap);
+
+  //  });
 }
 
 //helper to update the map on each slider click
@@ -229,22 +291,24 @@ $(document).ready(function(){
   // var rad_sixHundred_VN = [[37.764920, -122.421925],[37.765323, -122.415367],[37.760502, -122.414882],[37.760119, -122.421466]];
   // var sixHundred_VN_polygon = L.polygon(rad_sixHundred_VN, {color: 'red'}).addTo(mymap);
 
-  //adds the 311s
-  mymap.spin(true); //starts loading symbol
+//###ADDS LAYERS TO THE MAP###
 
+  mymap.spin(true); //starts loading symbol
   //adds the 311 data
-  Vida.group311= add311(mymap, Vida, true);
-  Vara.group311 = add311(mymap, Vara, true);
+  //Vida.group311= add311(mymap, Vida, true);
+  //Vara.group311 = add311(mymap, Vara, true);
   //Valencia.group311 = add311(mymap, Valencia, true);
 
-  //adds the blocks / gross rent data
-  addGrossRent(mymap);
+  //adds the blocks / zillow rent data
+  addRent(mymap, Vida);
+  //addRent(mymap, Vara);
+
 
   //adds the eviction data
-  Vida.groupEvictData= addEvict(mymap, Vida, true);
-  Vara.groupEvictData = addEvict(mymap, Vara, true);
+  //Vida.groupEvictData= addEvict(mymap, Vida, true);
+  //Vara.groupEvictData = addEvict(mymap, Vara, true);
 
-  mymap.spin(false); //stops the loading symbol
+  mymap.spin(false); //stops the loading symbol problem is code is async
 
 //###DECLARATION OF EVENT LISTENERS###
 
@@ -262,7 +326,7 @@ $(document).ready(function(){
 
   //adds functionality to the before/after slider
   $(".slider").click(function(){
-      mymap.spin(true); 
+      mymap.spin(true);
       if($('#timebox').is(':checked')){
         $(".yearSpan").html("Since");
         $("#after").css( "font-weight", "bold" );
