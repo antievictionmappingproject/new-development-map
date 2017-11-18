@@ -47,39 +47,39 @@ and the Class will automatically do the calculations for lots of things includin
     `true`: to get the points AFTER the Development went in
     `false`: to get the points before
 
-  This function gets the geoJSON data from CARTO and adds all the points to a leaflet L.layerGroup() everywhere they fall within the correct time and location range. Then it adds that layer group to the map using the Leaflet handling of JSON objects
+  This function gets the geoJSON data from CARTO and adds all the points to a leaflet `L.layerGroup()` everywhere they fall within the correct time and location range. Then it adds that layer group to the map using the Leaflet handling of JSON objects
 
-  It uses to the SQL to only request the data within the bounds of the Development Class Object it was passed and then in the JSON request filters the returned JSON information using the dateFilter() helper from above.
+  It uses to the SQL to only request the data within the bounds of the Development Class Object it was passed and then in the JSON request filters the returned JSON information using the `dateFilter()` helper from above.
 
   It also counts the number of 311 points and changes an html object with a specific class (equal to the string "#" + D.countName  + "311s") to the number of points.
 
   It then returns the layerGroup
 
   **addEvict():**
-  takes the same 3 argumentsas add311()
+  takes the same 3 argumentsas `add311()`
 
-  this function in the same way as add311() uses a custum SQL command to gets the geoJSON data from CARTO on evictions. It adds all the infotmation to a L.geoJSON leaflet layer
+  This function, in the same way as `add311()`, uses a custum SQL command to get the geoJSON data from CARTO on evictions. It adds all the information to a `L.geoJSON` leaflet layer
 
-  it then uses the Leaflet method pointToLayer and the dateFilter helper to filter the geojson data by date
+  It then uses the Leaflet method `pointToLayer()` and the `dateFilter()` helper to filter the geojson data by date
 
-  for each data point that gets through the filter it then adds one to the count, creates a new Latlng object and adds it to an array
+  For each data point that gets through the filter it then adds one to the count, creates a new `Latlng` object and adds it to an array
 
-  if the array is empty (ie this is the first valid data point) it creates a new Marker and adds it to the map
+  If the array is empty (ie this is the first valid data point) it creates a new Marker and adds it to the map
 
-  if not, it checks to see if any of the evictions in the array happened in the same place if not it adds it to the map,
+  If not, it checks to see if any of the evictions in the array happened in the same place if not it adds it to the map,
 
-  if there was already a data point in that location it gets the marker with the same data point, based on its popup string text and increases the radius of the marker and changes its popup to not that there were multiple evictions.
+  If there was already a data point in that location, it gets the marker with the same location (based on its popup string text) and increases the radius of the marker. Finally, it changes the marker's popup to note that there were multiple evictions at this location.
 
-  The popups also include the type of eviction from the data and note if all the reoccuring evictions are the same type or not
+  The popups also include the type of eviction from the data and note if all the reoccurring evictions are the same type or not
 
-  it also counts the number of eviction points and changes an html object with a specific class (equal to the string "#" + D.countName  + "Evictions") to the number of points
+  The function also counts the number of eviction points and changes an html object with a specific class (equal to the string "#" + D.countName  + "Evictions") to the number of points
 
   *Possible Bug: repeating data points might not be handled properly all the time but handles it most of the time*
 
   **addRent()**
-  this was my ([remusofreem](https://github.com/remusofreem)) attempt to add rent data based on city blocks, this was by far the most challenging aspect of the project and unfortunatley it became clear by the end of the summer that the solution I spent the most time on (using the ZillowApi) was not fit for the task
+  This was my ([remusofreem](https://github.com/remusofreem)) attempt to add rent data based on city blocks, this was by far the most challenging aspect of the project and unfortunately it became clear by the end of the summer that the solution I spent the most time on (using the ZillowApi) was not fit for the task
 
-  At some future point we need to find rent data to implement. My best hope would be gross rent data that is by some city unit small enough to fit in the map. Then we could get  geJSON data for polygons of that size which can we can then import to CARTO and then add to the map using Leaflet's onEachFeature handling of geojson data to color each piece based on the rent data and some gradient.
+  At some future point we need to find rent data to implement. My best hope would be gross rent data that is based on some city unit small enough to fit in the map. Then we could get  geoJSON data from the city for polygons of that unit's size, which can we can import to CARTO. After that, it wouldn't be hard for me to then add them to the map using Leaflet's `onEachFeature` handling of geojson data to color each polygon based on the rent data and some gradient.
 
   **timeHelper()**:
-  this is a helper for the HTML that lets it swtich between displaying data before and after the development went in.
+  this is a helper for the HTML that lets it switch between displaying data before and after the development went in.
