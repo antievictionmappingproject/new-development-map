@@ -62,7 +62,7 @@ function getColor(d) {
 //styler for the rent data
 function style(feature) {
     return {
-        fillColor: getColor(feature.properties.right_estimate_total),
+        fillColor: getColor(feature.properties.rent_p_mo),
         weight: 2,
         opacity: 1,
         color: 'white',
@@ -174,7 +174,8 @@ function addEvict(mymap, D, after){
 
 
 
-//gross rent block caller (adds polygons to the map)
+//gross rent block caller (adds polygons to the map) //Currently doesnt work the Zillow API is not designed for this feature
+//in future we need to find some dataset of rent block by block then it could be implemented here
 function addRent(mymap, D){
     sodaQueryBlocks= htmlQueryAdress + sqlQueryRent;
     $.getJSON("https://ampitup.carto.com/api/v2/sql?format=GeoJSON&q=" + sqlQueryRent, function(data)  {
@@ -192,45 +193,13 @@ function addRent(mymap, D){
                }
           },
             onEachFeature: function (feature, layer){
-              var currentAddress = feature.properties.to_st + "+" + feature.properties.street + "+" + feature.properties.st_type;
+              var currentAddress = feature.properties.to_st + " " + feature.properties.street + " " + feature.properties.st_type;
               var newUrl = "http://www.zillow.com/webservice/GetSearchResults.htm?zws-id=" + aempZillowKey + "&address=" + currentAddress.toLowerCase() + "&citystatezip=SanFrancisco%2C+CA";
               var yqlURL = yqlBaseURI + "?q=" + encodeURIComponent("select * from xml where url='" + newUrl + "'") + "&format=xml&callback=?";
-              $.ajax({
-                type: 'POST',
-                url: 'zillow.php',
-                data: { address: currentAddress },
-                success: function(response) {
-                  //var results = data.results;
-                  console.log(response);
-                }
-              });
-            //  var yqlHTML = "select * from html where url=";
-            //  var xhr = new XMLHttpRequest();
-            //  xhr.open("GET" , newUrl);
-            //  var data = xhr.responseXML
-              // $.ajax({
-              //   url: yqlURL,// + "?",
-              //
-              //   jsonp: "$jsonp",
-              //   dataType: "jsonp",
-              //   jsonpCallback: 'callback',
-              //   success: function (data) {
-
-                  //var resultURL =  <homedetails>
-                  // $.ajax({
-                  //   url: resultURL,
-                  //   publiclyCallable: true;
-                  //   success: function(data) {
-                  //     alert(data);
-                  //   }
-                  // });
-                  //<meta property="zillow_fb:description"
-                  //"The Rent Zestimate for this home is "
-                  //console.log(data);
-                  //layer.bindPopup(data);
-                }
-              //});
-          //}
+              console.log(feature.properties.mapblklot + " " + currentAddress);
+              layer.bindPopup(feature.rent_p_mo);
+          },
+          style: style
         }).addTo(mymap);
 
       //  }
@@ -242,13 +211,13 @@ function addRent(mymap, D){
 //helper to update the map on each slider click
 function timeHelper(map, D, after){ //a leaflet map, a Development object, a true false of wheter to get data from AFTER the dev's date or not
   D.group311.eachLayer(function (layer) {
-      map.removeLayer(layer);
+      map.removeLayer(layer); //removes old 311 layer
   });
   D.groupEvictData.eachLayer(function (layer){
-    map.removeLayer(layer);
+    map.removeLayer(layer); // removes old evict data layer
   });
-  D.group311= add311(map, D, after);
-  D.groupEvictData = addEvict(map, D , after);
+  D.group311= add311(map, D, after); //adds new ones
+  D.groupEvictData = addEvict(map, D , after); //adds new ones
 }
 
 
@@ -271,12 +240,6 @@ $(document).ready(function(){
   const Vara = new Development("Vara Apartments", 37.767121, -122.420550, "11/4/2014");
   Vara.marker.addTo(mymap);
 
-  //const Valencia = new Development("Valencia Apartments", 37.766292, -122.421816, "OCT 16, 2012, 2:00PM")
-  //Valencia.marker.addTo(mymap);
-  //this Development is way to new!
-  // var SixHundred_VN = new Development("600 South Van Ness", 37.763367, -122.417670, "2015 JAN");
-  // SixHundred_VN.marker.addTo(mymap);
-
   //adds the radii (1 block square)
   var rad_vida_apt = [[37.758387, -122.423573],[37.758780, -122.416922],[37.753992, -122.416425],[  37.753599, -122.423011]];
   Vida.addBounds(rad_vida_apt).addTo(mymap);
@@ -284,45 +247,34 @@ $(document).ready(function(){
   var rad_vara_apt = [[37.769722, -122.424578],[37.764790, -122.424113],[37.765201, -122.417518],[37.769593, -122.417856], [37.769983, -122.420374]];
   Vara.addBounds(rad_vara_apt).addTo(mymap);
 
-  //var rad_valencia_apt = [[37.768044, -122.424439],[37.768434, -122.417851],[37.763566, -122.417422], [37.763209, -122.423988]];
-  //Valencia.addBounds(rad_valencia_apt).addTo(mymap);
-
-  //this Development is way to new!
-  // var rad_sixHundred_VN = [[37.764920, -122.421925],[37.765323, -122.415367],[37.760502, -122.414882],[37.760119, -122.421466]];
-  // var sixHundred_VN_polygon = L.polygon(rad_sixHundred_VN, {color: 'red'}).addTo(mymap);
-
 //###ADDS LAYERS TO THE MAP###
 
   mymap.spin(true); //starts loading symbol
   //adds the 311 data
-  //Vida.group311= add311(mymap, Vida, true);
-  //Vara.group311 = add311(mymap, Vara, true);
-  //Valencia.group311 = add311(mymap, Valencia, true);
+  Vida.group311= add311(mymap, Vida, true);
+  Vara.group311 = add311(mymap, Vara, true);
 
-  //adds the blocks / zillow rent data
-  addRent(mymap, Vida);
+  //adds the blocks / zillow rent data: this is where to implement rent when rent data available
+//  addRent(mymap, Vida);
+//  addRent(mymap, Vara);
   //addRent(mymap, Vara);
 
 
   //adds the eviction data
-  //Vida.groupEvictData= addEvict(mymap, Vida, true);
-  //Vara.groupEvictData = addEvict(mymap, Vara, true);
+  Vida.groupEvictData= addEvict(mymap, Vida, true);
+  Vara.groupEvictData = addEvict(mymap, Vara, true);
 
   mymap.spin(false); //stops the loading symbol problem is code is async
 
 //###DECLARATION OF EVENT LISTENERS###
 
-  //adds interactivity to the flyTo buttons
+  //adds interactivity to the flyTo buttons (makes map fly to location on button press)
   $("#vida_button").click(function() {
       mymap.flyTo(Vida.latLng, 16);
   });
   $("#vara_button").click(function() {
       mymap.flyTo(Vara.latLng, 16);
   });
-  // $("#shvn_button").click(function() {
-  //     mymap.flyTo(SixHundred_VN.latLng, 16);
-  // });
-
 
   //adds functionality to the before/after slider
   $(".slider").click(function(){
