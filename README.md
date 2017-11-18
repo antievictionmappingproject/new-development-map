@@ -40,7 +40,8 @@ a name, latitude and longitude and the date is was built and it will automatical
   3. a boolean:
     true: if it wants the points AFTER the Development went in
     false if it wants the points before
-  this function gets the geoJSON data from CARTO and adds all the points to a leaflet L.layerGroup() everywhere to the map where they fall within the correct time and location range then adds that layer group to the map using the Leaflet handling of JSON objects
+
+  this function gets the geoJSON data from CARTO and adds all the points to a leaflet L.layerGroup() everywhere they fall within the correct time and location range then adds that layer group to the map using the Leaflet handling of JSON objects
 
   it uses to the SQL to only request the data within the bounds of the Development Class Object it was passed and then in the JSON request filters the returned JSON information using the dateFilter() helper from above
 
@@ -48,8 +49,23 @@ a name, latitude and longitude and the date is was built and it will automatical
 
   it then returns the layerGroup
 
+  **addEvict():**
+  takes the same 3 argumentsas add311()
 
+  this function in the same way as add311() uses a custum SQL command to gets the geoJSON data from CARTO on evictions. It adds all the infotmation to a L.geoJSON leaflet layer
 
+  it then uses the Leaflet method pointToLayer and the dateFilter helper to filter the gejson data by date
 
+  for each data point that gets through the filter it then adds one to the count, creates a new Latlng object and adds it to an array
 
-  *Possible Bug: repeating data points might not be handled properly*
+  if the array is empty (ie this is the first valid data point) it creates a new Marker and adds it to the map
+
+  if not, it checks to see if any of the evictions in the array happened in the same place if not it adds it to the map,
+
+  if there was already a data point in that location it gets the marker with the same data point, based on its popup string text and increases the radius of the marker and changes its popup.
+
+  it also counts the number of eviction points and changes an html object with a specific class (equal to the string "#" + D.countName  + "Evictions") to the number of points
+
+  *Possible Bug: repeating data points might not be handled properly all the time but handles it most of the time*
+
+  **addRent()**
