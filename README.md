@@ -71,7 +71,7 @@ a name, latitude and longitude and the date is was built and it will automatical
   *Possible Bug: repeating data points might not be handled properly all the time but handles it most of the time*
 
   **addRent()**
-  this was my ( (https://github.com/remusofreem "remusofreem") ) attempt to add rent data based on city blocks, this was by far the most challenging aspect of the project and unfortunatley it became clear by the end of the summer that the solution I spent the most time on (using the ZillowApi) was not fit for the task
+  this was my ( [remusofreem](https://github.com/remusofreem) ) attempt to add rent data based on city blocks, this was by far the most challenging aspect of the project and unfortunatley it became clear by the end of the summer that the solution I spent the most time on (using the ZillowApi) was not fit for the task
 
   At some future point we need to find rent data to implement. My best hope would be gross rent by some city geJSON data which can we can import to CARTO and then add to the map using Leaflet's onEachFeature handling of geojson data to color each piece based on rent and some gradient.
 
