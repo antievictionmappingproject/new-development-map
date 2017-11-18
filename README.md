@@ -51,7 +51,7 @@ and the Class will automatically do the calculations for lots of things includin
 
   It uses to the SQL to only request the data within the bounds of the Development Class Object it was passed and then in the JSON request filters the returned JSON information using the `dateFilter()` helper from above.
 
-  It also counts the number of 311 points and changes an html object with a specific class (equal to the string "#" + D.countName  + "311s") to the number of points.
+  It also counts the number of 311 points and changes an html object with a specific class (equal to the string ``"#" + D.countName  + "311s"``) to the number of points.
 
   It then returns the layerGroup
 
@@ -72,7 +72,7 @@ and the Class will automatically do the calculations for lots of things includin
 
   The popups also include the type of eviction from the data and note if all the reoccurring evictions are the same type or not
 
-  The function also counts the number of eviction points and changes an html object with a specific class (equal to the string "#" + D.countName  + "Evictions") to the number of points
+  The function also counts the number of eviction points and changes an html object with a specific class (equal to the string ``"#" + D.countName  + "Evictions"``) to the number of points
 
   *Possible Bug: repeating data points might not be handled properly all the time but handles it most of the time*
 
