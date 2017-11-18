@@ -54,7 +54,7 @@ a name, latitude and longitude and the date is was built and it will automatical
 
   this function in the same way as add311() uses a custum SQL command to gets the geoJSON data from CARTO on evictions. It adds all the infotmation to a L.geoJSON leaflet layer
 
-  it then uses the Leaflet method pointToLayer and the dateFilter helper to filter the gejson data by date
+  it then uses the Leaflet method pointToLayer and the dateFilter helper to filter the geojson data by date
 
   for each data point that gets through the filter it then adds one to the count, creates a new Latlng object and adds it to an array
 
@@ -62,10 +62,18 @@ a name, latitude and longitude and the date is was built and it will automatical
 
   if not, it checks to see if any of the evictions in the array happened in the same place if not it adds it to the map,
 
-  if there was already a data point in that location it gets the marker with the same data point, based on its popup string text and increases the radius of the marker and changes its popup.
+  if there was already a data point in that location it gets the marker with the same data point, based on its popup string text and increases the radius of the marker and changes its popup to not that there were multiple evictions.
+
+  The popups also include the type of eviction from the data and note if all the reoccuring evictions are the same type or not
 
   it also counts the number of eviction points and changes an html object with a specific class (equal to the string "#" + D.countName  + "Evictions") to the number of points
 
   *Possible Bug: repeating data points might not be handled properly all the time but handles it most of the time*
 
   **addRent()**
+  this was my ( (https://github.com/remusofreem "remusofreem") ) attempt to add rent data based on city blocks, this was by far the most challenging aspect of the project and unfortunatley it became clear by the end of the summer that the solution I spent the most time on (using the ZillowApi) was not fit for the task
+
+  At some future point we need to find rent data to implement. My best hope would be gross rent by some city geJSON data which can we can import to CARTO and then add to the map using Leaflet's onEachFeature handling of geojson data to color each piece based on rent and some gradient.
+
+  **timeHelper()**:
+  this is a helper for the HTML that lets it swtich between displaying data before and after the development went in.

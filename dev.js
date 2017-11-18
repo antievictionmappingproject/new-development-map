@@ -120,10 +120,9 @@ function add311(mymap, D, after){
 }
 
 //Eviction Data Caller (adds to the map and returns a group of all points)
-function addEvict(mymap, D, after){ 
+function addEvict(mymap, D, after){
     var newGroup = L.layerGroup();
     var dotCount = 0; //counter for how many eviction reports fit
-    //var repeatedMap = new Map; //to contain the repeated values
     var arr = [""];
     //creates new sqlQuery for the bounds of the current Development
     var sqlQuery = sqlQueryEvictData + " WHERE latitude < " + D.bounds.getNorthWest().lat + " AND longitude > " + D.bounds.getNorthWest().lng + " AND latitude > " + D.bounds.getSouthEast().lat + " AND longitude < " + D.bounds.getSouthEast().lng;
@@ -131,7 +130,7 @@ function addEvict(mymap, D, after){
     $.getJSON("https://ampitup.carto.com/api/v2/sql?format=GeoJSON&q=" + sqlQuery, function(data)  {
       evictionData = L.geoJson(data,{ //makes a new layer and assigns the GeoJSON file to it.
         pointToLayer: function (feature, layer) {
-            //adds a circleMarker at each lat and lang of the 311 dataset
+            //adds a circleMarker at each lat and lang of the eviction dataset
             var date = new Date(feature.properties.date); //creates a new date object matching the date of the current feature
 
             if(dateFilter(date, D, after)){ //if it fits the date (before/after)
@@ -156,7 +155,7 @@ function addEvict(mymap, D, after){
                   }else if( oldPop[oldPop.length-1] == "x"){ //keeps adding to the x num if they are the same
                     var exNum =  parseInt(oldPop[oldPop.length -2]) + 1;
                     arr[i]._popup.setContent( oldPop.substring(0, oldPop.length-3) + " " + exNum + "x");
-                  }else{ //if the strings are diffent concatenates them
+                  }else{ //if the strings are diffent concatenates them (THIS IS SOURCE OF COUNTING bug)
                     arr[i]._popup.setContent(oldPop + " | " + popString);
                   }
                   var rad = arr[i].getRadius(); //increases the radius of the point by 5px
