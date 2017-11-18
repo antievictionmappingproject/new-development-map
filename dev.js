@@ -42,7 +42,6 @@ class Development {
     return this.radius;
   }
 }
-var VidaH
 //###DECLARATION OF FUNCTIONS###
 
 //gets color for the rent number
@@ -121,7 +120,7 @@ function add311(mymap, D, after){
 }
 
 //Eviction Data Caller (adds to the map and returns a group of all points)
-function addEvict(mymap, D, after){
+function addEvict(mymap, D, after){ 
     var newGroup = L.layerGroup();
     var dotCount = 0; //counter for how many eviction reports fit
     //var repeatedMap = new Map; //to contain the repeated values
